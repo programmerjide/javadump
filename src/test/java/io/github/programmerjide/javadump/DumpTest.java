@@ -1,5 +1,6 @@
 package io.github.programmerjide.javadump;
 
+import io.github.programmerjide.javadump.core.Dump;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 

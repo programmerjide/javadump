@@ -1,327 +1,423 @@
 package io.github.programmerjide.javadump.util;
 
-import java.util.Objects;
+import org.junit.jupiter.api.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 
-/**
- * ANSI color utility for terminal output with theme support.
- *
- * @author Olaldejo Olajide
- * @since 1.0.0
- */
-public class ColorUtilTest {
+import static org.assertj.core.api.Assertions.*;
 
-    // ==================== ANSI Color Codes ====================
+class ColorUtilTest {
 
-    public static final String RESET = "\033[0m";
-    public static final String GRAY = "\033[90m";
-    public static final String DIM = "\033[2m";
-    public static final String YELLOW = "\033[33m";
-    public static final String RED = "\033[31m";
-    public static final String GREEN = "\033[32m";
-    public static final String BLUE = "\033[0;34m";
-    public static final String CYAN = "\033[38;5;38m";
-    public static final String ORANGE = "\033[38;5;208m";
-    public static final String PURPLE = "\033[0;35m";
-    public static final String LIME = "\033[1;38;5;113m";
-    public static final String MAGENTA = "\033[38;5;201m";
-    public static final String REF = "\033[38;5;247m";
-
-    // Background colors
-    public static final String RED_BG = "\033[48;2;34;16;16m";
-    public static final String GREEN_BG = "\033[48;2;16;34;22m";
-    public static final String GRAY_BG = "\033[48;2;40;40;40m";
-
-    // Text styles
-    public static final String BOLD = "\033[1m";
-    public static final String ITALIC = "\033[3m";
-    public static final String UNDERLINE = "\033[4m";
-    public static final String BLINK = "\033[5m";
-    public static final String REVERSE = "\033[7m";
-    public static final String HIDDEN = "\033[8m";
-    public static final String STRIKETHROUGH = "\033[9m";
-
-    // ==================== Instance Fields ====================
-
-    private final boolean enabled;
-    private final ColorTheme theme;
-
-    // ==================== Color Themes ====================
-
-    public enum ColorTheme {
-        DARK,
-        LIGHT,
-        HIGH_CONTRAST
+    @BeforeEach
+    void setUp() {
+        ColorUtil.forceEnableColors();
     }
 
-    // ==================== Constructors ====================
-
-    public ColorUtilTest() {
-        this(supportsColors());
+    @AfterEach
+    void tearDown() {
+        // Reset to default state
+        ColorUtil.forceEnableColors();
     }
 
-    public ColorUtilTest(boolean enabled) {
-        this(enabled, ColorTheme.DARK);
-    }
+    // ==================== Utility Class Validation ====================
 
-    public ColorUtilTest(boolean enabled, ColorTheme theme) {
-        this.enabled = enabled;
-        this.theme = Objects.requireNonNull(theme, "theme cannot be null");
-    }
+    @Test
+    void colorUtil_isUtilityClass_cannotBeInstantiated() {
+        // Verify it's a final class
+        assertThat(ColorUtil.class).isFinal();
 
-    // ==================== Getters ====================
+        // Verify it has only one private constructor
+        Constructor<?>[] constructors = ColorUtil.class.getDeclaredConstructors();
+        assertThat(constructors).hasSize(1);
 
-    public boolean isEnabled() {
-        return enabled;
-    }
+        Constructor<?> constructor = constructors[0];
+        assertThat(Modifier.isPrivate(constructor.getModifiers())).isTrue();
 
-    public ColorTheme getTheme() {
-        return theme;
-    }
-
-    // ==================== Instance Color Methods ====================
-
-    public String colorize(String text, String color) {
-        if (!enabled || text == null || color == null) {
-            return text != null ? text : "";
-        }
-        return color + text + RESET;
-    }
-
-    public String style(String text, String... styles) {
-        if (!enabled || text == null || styles == null || styles.length == 0) {
-            return text != null ? text : "";
-        }
-
-        StringBuilder sb = new StringBuilder();
-        for (String style : styles) {
-            if (style != null) {
-                sb.append(style);
+        // Verify constructor throws exception when called
+        constructor.setAccessible(true);
+        assertThatThrownBy(() -> {
+            try {
+                constructor.newInstance();
+            } catch (InvocationTargetException e) {
+                throw e.getCause(); // Unwrap the actual exception
             }
+        })
+                .isInstanceOf(UnsupportedOperationException.class)
+                .hasMessageContaining("utility class");
+    }
+
+    // ==================== Basic Color Methods Tests ====================
+
+    @Test
+    void type_withColorsEnabled_returnsColoredText() {
+        ColorUtil.forceEnableColors();
+        String result = ColorUtil.type("String");
+
+        assertThat(result)
+                .contains("\033[")
+                .contains("String")
+                .contains("\033[0m");
+    }
+
+    @Test
+    void type_withColorsDisabled_returnsPlainText() {
+        ColorUtil.forceDisableColors();
+        String result = ColorUtil.type("String");
+
+        assertThat(result)
+                .doesNotContain("\033[")
+                .isEqualTo("String");
+    }
+
+    @Test
+    void string_withColorsEnabled_returnsGreenText() {
+        ColorUtil.forceEnableColors();
+        String result = ColorUtil.string("test");
+
+        assertThat(result)
+                .contains("\033[")
+                .contains("test");
+    }
+
+    @Test
+    void number_withColorsEnabled_returnsOrangeText() {
+        ColorUtil.forceEnableColors();
+        String result = ColorUtil.number("42");
+
+        assertThat(result)
+                .contains("\033[")
+                .contains("42");
+    }
+
+    @Test
+    void field_withColorsEnabled_returnsCyanText() {
+        ColorUtil.forceEnableColors();
+        String result = ColorUtil.field("name");
+
+        assertThat(result)
+                .contains("\033[")
+                .contains("name");
+    }
+
+    @Test
+    void keyword_withColorsEnabled_returnsYellowText() {
+        ColorUtil.forceEnableColors();
+        String result = ColorUtil.keyword("null");
+
+        assertThat(result)
+                .contains("\033[")
+                .contains("null");
+    }
+
+    @Test
+    void error_withColorsEnabled_returnsRedText() {
+        ColorUtil.forceEnableColors();
+        String result = ColorUtil.error("failure");
+
+        assertThat(result)
+                .contains("\033[")
+                .contains("failure");
+    }
+
+    @Test
+    void dim_withColorsEnabled_returnsDimText() {
+        ColorUtil.forceEnableColors();
+        String result = ColorUtil.dim("dimmed");
+
+        assertThat(result)
+                .contains("\033[")
+                .contains("dimmed");
+    }
+
+    @Test
+    void gray_withColorsEnabled_returnsGrayText() {
+        ColorUtil.forceEnableColors();
+        String result = ColorUtil.gray("gray");
+
+        assertThat(result)
+                .contains("\033[")
+                .contains("gray");
+    }
+
+    // ==================== Color Constant Tests ====================
+
+    @Test
+    void colorConstants_areCorrect() {
+        assertThat(ColorUtil.RESET).isEqualTo("\033[0m");
+        assertThat(ColorUtil.GRAY).isEqualTo("\033[90m");
+        assertThat(ColorUtil.DIM).isEqualTo("\033[2m");
+        assertThat(ColorUtil.YELLOW).isEqualTo("\033[33m");
+        assertThat(ColorUtil.RED).isEqualTo("\033[31m");
+        assertThat(ColorUtil.GREEN).isEqualTo("\033[32m");
+        assertThat(ColorUtil.CYAN).isEqualTo("\033[38;5;38m");
+        assertThat(ColorUtil.ORANGE).isEqualTo("\033[38;5;208m");
+    }
+
+    // ==================== Formatting Helper Tests ====================
+
+    @Test
+    void structural_withColorsEnabled_returnsGrayText() {
+        ColorUtil.forceEnableColors();
+        String result = ColorUtil.structural("{");
+
+        assertThat(result)
+                .contains("\033[")
+                .contains("{");
+    }
+
+    @Test
+    void arrow_withColorsEnabled_returnsColoredArrow() {
+        ColorUtil.forceEnableColors();
+        String result = ColorUtil.arrow();
+
+        assertThat(result)
+                .contains("\033[")
+                .contains(" → ");
+    }
+
+    @Test
+    void arrow_withColorsDisabled_returnsPlainArrow() {
+        ColorUtil.forceDisableColors();
+        String result = ColorUtil.arrow();
+
+        assertThat(result)
+                .doesNotContain("\033[")
+                .isEqualTo(" → ");
+    }
+
+    @Test
+    void formatType_withClass_returnsFormattedType() {
+        ColorUtil.forceEnableColors();
+        String result = ColorUtil.formatType(String.class);
+
+        assertThat(result)
+                .contains("\033[")
+                .contains("#String");
+    }
+
+    @Test
+    void formatType_withNullClass_returnsNullType() {
+        ColorUtil.forceEnableColors();
+        String result = ColorUtil.formatType((Class<?>) null);
+
+        assertThat(result)
+                .contains("#null");
+    }
+
+    @Test
+    void formatType_withString_returnsFormattedType() {
+        ColorUtil.forceEnableColors();
+        String result = ColorUtil.formatType("Integer");
+
+        assertThat(result)
+                .contains("#Integer")
+                .contains("\033[");
+    }
+
+    @Test
+    void formatHeader_withColorsEnabled_returnsDimText() {
+        ColorUtil.forceEnableColors();
+        String result = ColorUtil.formatHeader("Test.java", 42);
+
+        assertThat(result)
+                .contains("\033[")
+                .contains("Test.java:42");
+    }
+
+    @Test
+    void formatHeader_withColorsDisabled_returnsPlainText() {
+        ColorUtil.forceDisableColors();
+        String result = ColorUtil.formatHeader("Test.java", 42);
+
+        assertThat(result)
+                .doesNotContain("\033[")
+                .isEqualTo("Test.java:42");
+    }
+
+    @Test
+    void formatTruncated_withColorsEnabled_returnsDimText() {
+        ColorUtil.forceEnableColors();
+        String result = ColorUtil.formatTruncated();
+
+        assertThat(result)
+                .contains("\033[")
+                .contains("... (truncated)");
+    }
+
+    @Test
+    void formatCyclic_withColorsEnabled_returnsYellowText() {
+        ColorUtil.forceEnableColors();
+        String result = ColorUtil.formatCyclic();
+
+        assertThat(result)
+                .contains("\033[")
+                .contains("↻ (circular)");
+    }
+
+    // ==================== Color Management Tests ====================
+
+    @Test
+    void forceEnableColors_alwaysEnablesColors() {
+        ColorUtil.forceEnableColors();
+        assertThat(ColorUtil.isColorsEnabled()).isTrue();
+
+        String result = ColorUtil.type("test");
+        assertThat(result).contains("\033[");
+    }
+
+    @Test
+    void forceDisableColors_alwaysDisablesColors() {
+        ColorUtil.forceDisableColors();
+        assertThat(ColorUtil.isColorsEnabled()).isFalse();
+
+        String result = ColorUtil.type("test");
+        assertThat(result).doesNotContain("\033[");
+    }
+
+    @Test
+    void setColorsEnabled_smokeTest() {
+        // Just verify it doesn't throw
+        assertThatCode(() -> ColorUtil.setColorsEnabled(true))
+                .doesNotThrowAnyException();
+    }
+
+    // ==================== Utility Method Tests ====================
+
+    @Test
+    void stripColors_removesAnsiCodes() {
+        String coloredText = "\033[31mError\033[0m";
+        String result = ColorUtil.stripColors(coloredText);
+
+        assertThat(result)
+                .doesNotContain("\033[")
+                .isEqualTo("Error");
+    }
+
+    @Test
+    void stripColors_withNull_returnsNull() {
+        String result = ColorUtil.stripColors(null);
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void stripColors_withNoColors_returnsSameText() {
+        String plainText = "Hello World";
+        String result = ColorUtil.stripColors(plainText);
+
+        assertThat(result).isEqualTo(plainText);
+    }
+
+    @Test
+    void lengthWithoutColors_calculatesCorrectLength() {
+        String coloredText = "\033[31mError\033[0m";
+        int length = ColorUtil.lengthWithoutColors(coloredText);
+
+        assertThat(length).isEqualTo("Error".length());
+    }
+
+    @Test
+    void lengthWithoutColors_withNull_returnsZero() {
+        int length = ColorUtil.lengthWithoutColors(null);
+        assertThat(length).isZero();
+    }
+
+    // ==================== Terminal Detection Tests ====================
+
+    @Test
+    void supportsColors_smokeTest() {
+        // Just verify the method doesn't throw
+        assertThatCode(ColorUtil::supportsColors).doesNotThrowAnyException();
+    }
+
+    // ==================== Integration Style Tests ====================
+
+    @Test
+    void allMethods_withColorsDisabled_returnPlainText() {
+        ColorUtil.forceDisableColors();
+
+        assertThat(ColorUtil.type("test")).isEqualTo("test");
+        assertThat(ColorUtil.string("test")).isEqualTo("test");
+        assertThat(ColorUtil.number("42")).isEqualTo("42");
+        assertThat(ColorUtil.field("name")).isEqualTo("name");
+        assertThat(ColorUtil.keyword("null")).isEqualTo("null");
+        assertThat(ColorUtil.error("error")).isEqualTo("error");
+        assertThat(ColorUtil.dim("dim")).isEqualTo("dim");
+        assertThat(ColorUtil.gray("gray")).isEqualTo("gray");
+        assertThat(ColorUtil.green("green")).isEqualTo("green");
+        assertThat(ColorUtil.red("red")).isEqualTo("red");
+        assertThat(ColorUtil.yellow("yellow")).isEqualTo("yellow");
+        assertThat(ColorUtil.cyan("cyan")).isEqualTo("cyan");
+        assertThat(ColorUtil.orange("orange")).isEqualTo("orange");
+        assertThat(ColorUtil.structural("{")).isEqualTo("{");
+        assertThat(ColorUtil.arrow()).isEqualTo(" → ");
+        assertThat(ColorUtil.formatType(String.class)).isEqualTo("#String");
+        assertThat(ColorUtil.formatType("Integer")).isEqualTo("#Integer");
+        assertThat(ColorUtil.formatHeader("Test.java", 1)).isEqualTo("Test.java:1");
+        assertThat(ColorUtil.formatTruncated()).isEqualTo("... (truncated)");
+        assertThat(ColorUtil.formatCyclic()).isEqualTo("↻ (circular)");
+    }
+
+    @Test
+    void methods_withEmptyString_handleCorrectly() {
+        ColorUtil.forceDisableColors();
+
+        assertThat(ColorUtil.type("")).isEmpty();
+        assertThat(ColorUtil.string("")).isEmpty();
+        assertThat(ColorUtil.number("")).isEmpty();
+        assertThat(ColorUtil.field("")).isEmpty();
+        assertThat(ColorUtil.keyword("")).isEmpty();
+        assertThat(ColorUtil.error("")).isEmpty();
+        assertThat(ColorUtil.dim("")).isEmpty();
+        assertThat(ColorUtil.gray("")).isEmpty();
+        assertThat(ColorUtil.green("")).isEmpty();
+        assertThat(ColorUtil.red("")).isEmpty();
+        assertThat(ColorUtil.yellow("")).isEmpty();
+        assertThat(ColorUtil.cyan("")).isEmpty();
+        assertThat(ColorUtil.orange("")).isEmpty();
+        assertThat(ColorUtil.structural("")).isEmpty();
+    }
+
+    @Test
+    void isColorsEnabled_reflectsCurrentState() {
+        // Start with disabled
+        ColorUtil.forceDisableColors();
+        assertThat(ColorUtil.isColorsEnabled()).isFalse();
+
+        // Enable
+        ColorUtil.forceEnableColors();
+        assertThat(ColorUtil.isColorsEnabled()).isTrue();
+
+        // Disable again
+        ColorUtil.forceDisableColors();
+        assertThat(ColorUtil.isColorsEnabled()).isFalse();
+    }
+
+    // ==================== Edge Case Tests ====================
+
+    @Test
+    void stripColors_performance_onLongStrings() {
+        // Build a long colored string
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < 100; i++) { // Reduced from 1000 to 100 for faster tests
+            builder.append("\033[31mError\033[0m");
         }
-        sb.append(text).append(RESET);
-        return sb.toString();
+        String longColoredText = builder.toString();
+
+        // Should strip all colors without issue
+        String stripped = ColorUtil.stripColors(longColoredText);
+
+        // Should be 5 * 100 characters ("Error" repeated 100 times)
+        assertThat(stripped.length()).isEqualTo(5 * 100);
+        assertThat(stripped).doesNotContain("\033[");
     }
 
-    // Basic colors
-    public String gray(String text) { return colorize(text, GRAY); }
-    public String yellow(String text) { return colorize(text, YELLOW); }
-    public String red(String text) { return colorize(text, RED); }
-    public String green(String text) { return colorize(text, GREEN); }
-    public String blue(String text) { return colorize(text, BLUE); }
-    public String purple(String text) { return colorize(text, PURPLE); }
-    public String lime(String text) { return colorize(text, LIME); }
-    public String cyan(String text) { return colorize(text, CYAN); }
-    public String orange(String text) { return colorize(text, ORANGE); }
-    public String magenta(String text) { return colorize(text, MAGENTA); }
-    public String ref(String text) { return colorize(text, REF); }
+    @Test
+    void lengthWithoutColors_handlesMixedContent() {
+        String mixed = "Plain \033[31mRed\033[0m Plain";
+        int length = ColorUtil.lengthWithoutColors(mixed);
 
-    // Text styles
-    public String bold(String text) { return colorize(text, BOLD); }
-    public String dim(String text) { return colorize(text, DIM); }
-    public String italic(String text) { return colorize(text, ITALIC); }
-    public String underline(String text) { return colorize(text, UNDERLINE); }
-    public String blink(String text) { return colorize(text, BLINK); }
-    public String reverse(String text) { return colorize(text, REVERSE); }
-    public String strikethrough(String text) { return colorize(text, STRIKETHROUGH); }
-
-    // Background colors
-    public String redBg(String text) { return colorize(text, RED_BG); }
-    public String greenBg(String text) { return colorize(text, GREEN_BG); }
-    public String grayBg(String text) { return colorize(text, GRAY_BG); }
-
-    // Semantic methods
-    public String success(String text) {
-        return lime("✓") + " " + gray(text);
-    }
-
-    public String error(String text) {
-        return red("✗") + " " + gray(text);
-    }
-
-    public String warning(String text) {
-        return yellow("⚠") + " " + gray(text);
-    }
-
-    public String info(String text) {
-        return cyan("ℹ") + " " + gray(text);
-    }
-
-    // ==================== Formatting Methods ====================
-
-    public String formatType(String typeName) {
-        if (StringUtil.isEmpty(typeName)) {
-            return orange("#null");
-        }
-        return orange("#" + typeName);
-    }
-
-    public String formatType(Class<?> clazz) {
-        if (clazz == null) {
-            return orange("#null");
-        }
-        String simpleName = clazz.getSimpleName();
-        if (simpleName.isEmpty()) {
-            simpleName = clazz.getName();
-        }
-        return orange("#" + simpleName);
-    }
-
-    public String formatField(String fieldName, boolean isPublic) {
-        if (StringUtil.isEmpty(fieldName)) {
-            return "";
-        }
-        String marker = isPublic ? "+" : "-";
-        return cyan(marker) + gray(fieldName);
-    }
-
-    public String formatString(String value) {
-        if (value == null) {
-            return orange("null");
-        }
-        String escaped = StringUtil.escape(value);
-        return green(StringUtil.quote(escaped));
-    }
-
-    public String formatNumber(Object value) {
-        if (value == null) {
-            return orange("null");
-        }
-        return orange(String.valueOf(value));
-    }
-
-    public String formatBoolean(boolean value) {
-        return value ? green("true") : red("false");
-    }
-
-    public String formatNull() {
-        return orange("null");
-    }
-
-    public String arrow() {
-        return gray(" → ");
-    }
-
-    public String structural(String character) {
-        return gray(character);
-    }
-
-    public String formatHeader(String filePath, int lineNumber) {
-        String header = String.format("<#dump // %s:%d", filePath, lineNumber);
-        return dim(header);
-    }
-
-    public String formatDiffAddition(String content) {
-        return style(content, GREEN, GREEN_BG);
-    }
-
-    public String formatDiffRemoval(String content) {
-        return style(content, RED, RED_BG);
-    }
-
-    public String formatRedacted() {
-        return yellow("<redacted>");
-    }
-
-    public String formatCyclic() {
-        return yellow("(cyclic)");
-    }
-
-    public String formatTruncated() {
-        return gray("(truncated)");
-    }
-
-    // ==================== Static Methods (for backward compatibility) ====================
-
-    public static String type(String text) {
-        return ORANGE + text + RESET;
-    }
-
-    public static String string(String text) {
-        return GREEN + text + RESET;
-    }
-
-    public static String number(String text) {
-        return ORANGE + text + RESET;
-    }
-
-    public static String field(String text) {
-        return CYAN + text + RESET;
-    }
-
-    public static String keyword(String text) {
-        return YELLOW + text + RESET;
-    }
-
-    // ==================== Fluent API ====================
-
-    public ColorUtilTest withoutColors() {
-        return new ColorUtilTest(false, theme);
-    }
-
-    public ColorUtilTest withTheme(ColorTheme newTheme) {
-        return new ColorUtilTest(enabled, newTheme);
-    }
-
-    // ==================== Terminal Detection ====================
-
-    public static boolean supportsColors() {
-        if (System.getenv("NO_COLOR") != null) {
-            return false;
-        }
-
-        if (System.getenv("CI") != null) {
-            return false;
-        }
-
-        if (System.getenv("COLORTERM") != null) {
-            return true;
-        }
-
-        String term = System.getenv("TERM");
-        if (term == null || term.equals("dumb")) {
-            return false;
-        }
-
-        if (term.contains("color") || term.contains("xterm") ||
-                term.contains("256") || term.equals("linux")) {
-            return true;
-        }
-
-        return System.console() != null;
-    }
-
-    public static String stripColors(String text) {
-        if (text == null) {
-            return null;
-        }
-        return text.replaceAll("\033\\[[;\\d]*m", "");
-    }
-
-    public static int lengthWithoutColors(String text) {
-        if (text == null) {
-            return 0;
-        }
-        return stripColors(text).length();
-    }
-
-    // ==================== Factory Methods ====================
-
-    public static ColorUtilTest create() {
-        return new ColorUtilTest();
-    }
-
-    public static ColorUtilTest enabled() {
-        return new ColorUtilTest(true);
-    }
-
-    public static ColorUtilTest disabled() {
-        return new ColorUtilTest(false);
-    }
-
-    // ==================== toString ====================
-
-    @Override
-    public String toString() {
-        return String.format("ColorUtilTest{enabled=%s, theme=%s}", enabled, theme);
+        // "Plain Red Plain" = 5 + 1 + 3 + 1 + 5 = 15
+        assertThat(length).isEqualTo(15);
     }
 }

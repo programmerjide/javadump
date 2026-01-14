@@ -27,6 +27,11 @@ public class ValueFormatter {
      */
     public ValueFormatter(DumperConfig config) {
         this.config = config;
+        if (config.isColorEnabled()) {
+            ColorUtil.forceEnableColors();
+        } else {
+            ColorUtil.forceDisableColors();
+        }
     }
 
     /**

@@ -2,303 +2,211 @@ package io.github.programmerjide.javadump.analyzer;
 
 import io.github.programmerjide.javadump.config.DumperConfig;
 import io.github.programmerjide.javadump.model.DumpNode;
-import io.github.programmerjide.javadump.util.StringUtil;
 import io.github.programmerjide.javadump.util.TypeNameUtil;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
-/**
- * Analyzes objects and creates DumpNode trees with field filtering and redaction.
- *
- * @author Olaldejo Olajide
- * @since 1.0.0
- */
 public class ObjectAnalyzer {
 
     private final DumperConfig config;
-    private final Set<Integer> visitedObjects;
-    private final TypeClassifier typeClassifier;
-    private final FieldFilter fieldFilter;
+    private final IdentityHashMap<Object, Boolean> visited = new IdentityHashMap<>();
 
     public ObjectAnalyzer(DumperConfig config) {
         this.config = config;
-        this.visitedObjects = new HashSet<>();
-        this.typeClassifier = new TypeClassifier();
-        this.fieldFilter = new FieldFilter(config);
     }
 
-    /**
-     * Analyzes an object and returns a DumpNode.
-     */
+    public DumpNode analyze(Object obj) {
+        return analyze(obj, 0);
+    }
+
     public DumpNode analyze(Object obj, int depth) {
-        // Handle null
+
+        // ===== NULL =====
         if (obj == null) {
-            return DumpNode.builder()
-                    .type(DumpNode.NodeType.NULL)
-                    .typeName("null")
-                    .build();
+            return DumpNode.ofNull();
         }
 
-        // Check max depth
+        // ===== MAX DEPTH =====
         if (depth >= config.getMaxDepth()) {
             return DumpNode.builder()
-                    .type(DumpNode.NodeType.OBJECT)
-                    .clazz(obj.getClass())
-                    .typeName(TypeNameUtil.getSimpleName(obj.getClass()))
+                    .type(DumpNode.NodeType.TRUNCATED)
                     .maxDepthReached(true)
+                    .truncated(true)
                     .build();
         }
 
-        // Check circular reference
-        int objectId = System.identityHashCode(obj);
-        if (visitedObjects.contains(objectId)) {
-            return DumpNode.builder()
-                    .type(DumpNode.NodeType.OBJECT)
-                    .clazz(obj.getClass())
-                    .typeName(TypeNameUtil.getSimpleName(obj.getClass()))
-                    .circular(true)
-                    .build();
+        // ===== CYCLE =====
+        if (visited.containsKey(obj)) {
+            return DumpNode.cyclic(obj.getClass());
         }
 
         Class<?> clazz = obj.getClass();
 
-        // Check for toString() if not disabled
-        if (!config.isDisableStringer() && hasCustomToString(clazz)) {
-            try {
-                String stringValue = obj.toString();
-                return analyzeString(stringValue);
-            } catch (Exception e) {
-                // Fall through to normal analysis
-            }
-        }
-
-        // Primitives and wrappers
+        // ===== PRIMITIVE & WRAPPER =====
         if (TypeNameUtil.isPrimitiveOrWrapper(clazz)) {
-            return analyzeNumber(obj, clazz);
+            return DumpNode.ofPrimitive(obj, clazz);
         }
 
-        // String
-        if (obj instanceof String) {
-            return analyzeString((String) obj);
-        }
-
-        // Boolean
-        if (obj instanceof Boolean) {
-            return analyzeBoolean((Boolean) obj);
-        }
-
-        // Enum
-        if (clazz.isEnum()) {
-            return analyzeEnum(obj);
-        }
-
-        // Mark as visited for circular detection
-        visitedObjects.add(objectId);
-
-        try {
-            // Array
-            if (clazz.isArray()) {
-                return analyzeArray(obj, depth);
+        // ===== STRING =====
+        if (TypeNameUtil.isString(clazz)) {
+            String value = (String) obj;
+            if (value.length() > config.getMaxStringLen()) {
+                value = value.substring(0, config.getMaxStringLen());
             }
-
-            // Collection
-            if (obj instanceof Collection) {
-                return analyzeCollection((Collection<?>) obj, depth);
-            }
-
-            // Map
-            if (obj instanceof Map) {
-                return analyzeMap((Map<?, ?>) obj, depth);
-            }
-
-            // Regular object
-            return analyzeObject(obj, depth);
-
-        } finally {
-            visitedObjects.remove(objectId);
-        }
-    }
-
-    private DumpNode analyzeString(String str) {
-        // Apply max string length
-        String displayValue = str;
-        if (str.length() > config.getMaxStringLen()) {
-            displayValue = StringUtil.truncate(str, config.getMaxStringLen());
+            return DumpNode.ofString(value);
         }
 
-        return DumpNode.builder()
-                .type(DumpNode.NodeType.STRING)
-                .clazz(String.class)
-                .value(displayValue)
-                .typeName("String")
-                .build();
+        // ===== ENUM =====
+        if (TypeNameUtil.isEnum(clazz)) {
+            return DumpNode.ofEnum((Enum<?>) obj);
+        }
+
+        // ===== SAFE toString SHORTCUT =====
+        if (!config.isDisableStringer()
+                && !TypeNameUtil.isArrayType(clazz)
+                && !TypeNameUtil.isCollectionType(clazz)
+                && !TypeNameUtil.isMapType(clazz)
+                && hasCustomToString(clazz)) {
+            try {
+                return DumpNode.ofString(obj.toString());
+            } catch (Exception ignored) {
+            }
+        }
+
+        visited.put(obj, Boolean.TRUE);
+
+        // ===== ARRAY =====
+        if (TypeNameUtil.isArrayType(clazz)) {
+            return analyzeArray(obj, depth);
+        }
+
+        // ===== COLLECTION =====
+        if (TypeNameUtil.isCollectionType(clazz)) {
+            return analyzeCollection((Collection<?>) obj, depth);
+        }
+
+        // ===== MAP =====
+        if (TypeNameUtil.isMapType(clazz)) {
+            return analyzeMap((Map<?, ?>) obj, depth);
+        }
+
+        // ===== OBJECT =====
+        return analyzeObject(obj, depth);
     }
 
-    private DumpNode analyzeNumber(Object obj, Class<?> clazz) {
-        return DumpNode.builder()
-                .type(DumpNode.NodeType.NUMBER)
-                .clazz(clazz)
-                .value(obj)
-                .typeName(clazz.getSimpleName())
-                .build();
-    }
-
-    private DumpNode analyzeBoolean(Boolean bool) {
-        return DumpNode.builder()
-                .type(DumpNode.NodeType.BOOLEAN)
-                .clazz(Boolean.class)
-                .value(bool)
-                .typeName("boolean")
-                .build();
-    }
-
-    private DumpNode analyzeEnum(Object obj) {
-        return DumpNode.builder()
-                .type(DumpNode.NodeType.ENUM)
-                .clazz(obj.getClass())
-                .value(obj.toString())
-                .typeName(obj.getClass().getSimpleName())
-                .build();
-    }
+    // ------------------------------------------------------------------------
 
     private DumpNode analyzeArray(Object array, int depth) {
-        int length = java.lang.reflect.Array.getLength(array);
-        Map<String, DumpNode> children = new LinkedHashMap<>();
+        int length = Array.getLength(array);
+        int max = Math.min(length, config.getMaxItems());
 
-        int limit = Math.min(length, config.getMaxItems());
-        for (int i = 0; i < limit; i++) {
-            Object element = java.lang.reflect.Array.get(array, i);
-            children.put(String.valueOf(i), analyze(element, depth + 1));
+        List<DumpNode> elements = new ArrayList<>(max);
+        for (int i = 0; i < max; i++) {
+            elements.add(analyze(Array.get(array, i), depth + 1));
         }
 
-        return DumpNode.builder()
-                .type(DumpNode.NodeType.ARRAY)
-                .clazz(array.getClass())
-                .typeName(array.getClass().getComponentType().getSimpleName() + "[]")
-                .children(children)
-                .build();
+        return DumpNode.ofArray(
+                array.getClass(),
+                elements,
+                length,
+                length > config.getMaxItems()
+        );
     }
 
     private DumpNode analyzeCollection(Collection<?> collection, int depth) {
-        Map<String, DumpNode> children = new LinkedHashMap<>();
-        int index = 0;
-        int limit = Math.min(collection.size(), config.getMaxItems());
+        int size = collection.size();
+        int max = Math.min(size, config.getMaxItems());
 
-        for (Object element : collection) {
-            if (index >= limit) break;
-            children.put(String.valueOf(index), analyze(element, depth + 1));
-            index++;
+        List<DumpNode> elements = new ArrayList<>(max);
+        int count = 0;
+        for (Object item : collection) {
+            if (count++ >= max) break;
+            elements.add(analyze(item, depth + 1));
         }
 
-        return DumpNode.builder()
-                .type(DumpNode.NodeType.COLLECTION)
-                .clazz(collection.getClass())
-                .typeName(TypeNameUtil.getSimpleName(collection.getClass()))
-                .children(children)
-                .build();
+        return DumpNode.ofCollection(
+                collection.getClass(),
+                elements,
+                size,
+                size > config.getMaxItems()
+        );
     }
 
     private DumpNode analyzeMap(Map<?, ?> map, int depth) {
-        Map<String, DumpNode> children = new LinkedHashMap<>();
-        int index = 0;
-        int limit = Math.min(map.size(), config.getMaxItems());
+        int size = map.size();
+        int max = Math.min(size, config.getMaxItems());
+
+        Map<DumpNode, DumpNode> entries = new LinkedHashMap<>();
+        int count = 0;
 
         for (Map.Entry<?, ?> entry : map.entrySet()) {
-            if (index >= limit) break;
-            String key = String.valueOf(entry.getKey());
-            children.put("\"" + key + "\"", analyze(entry.getValue(), depth + 1));
-            index++;
+            if (count++ >= max) break;
+            DumpNode key = analyze(entry.getKey(), depth + 1);
+            DumpNode value = analyze(entry.getValue(), depth + 1);
+            entries.put(key, value);
         }
 
-        return DumpNode.builder()
-                .type(DumpNode.NodeType.MAP)
-                .clazz(map.getClass())
-                .typeName(TypeNameUtil.getSimpleName(map.getClass()))
-                .children(children)
-                .build();
+        return DumpNode.ofMap(
+                map.getClass(),
+                entries,
+                size,
+                size > config.getMaxItems()
+        );
     }
 
     private DumpNode analyzeObject(Object obj, int depth) {
-        Map<String, DumpNode> children = new LinkedHashMap<>();
+        Map<String, DumpNode> fields = new LinkedHashMap<>();
         Class<?> clazz = obj.getClass();
 
-        List<Field> fields = fieldFilter.getAccessibleFields(clazz);
+        for (Field field : clazz.getDeclaredFields()) {
 
-        for (Field field : fields) {
+            int modifiers = field.getModifiers();
+
+            if (!config.isShowPrivateFields() && Modifier.isPrivate(modifiers)) {
+                continue;
+            }
+            if (!config.isShowStaticFields() && Modifier.isStatic(modifiers)) {
+                continue;
+            }
+            if (!config.isShowTransientFields() && Modifier.isTransient(modifiers)) {
+                continue;
+            }
+
             String fieldName = field.getName();
 
-            // Check if field should be included
             if (!config.shouldIncludeField(fieldName)) {
                 continue;
             }
 
+            field.setAccessible(true);
+
             try {
-                field.setAccessible(true);
                 Object value = field.get(obj);
 
-                // Check if field should be redacted
                 if (config.shouldRedactField(fieldName)) {
-                    children.put(fieldName, createRedactedNode(field.getType()));
+                    fields.put(fieldName, DumpNode.ofString("***REDACTED***"));
                 } else {
-                    children.put(fieldName, analyze(value, depth + 1));
+                    fields.put(fieldName, analyze(value, depth + 1));
                 }
-            } catch (Exception e) {
-                // Skip inaccessible fields
+
+            } catch (IllegalAccessException e) {
+                fields.put(fieldName, DumpNode.ofError("access denied"));
             }
         }
 
-        return DumpNode.builder()
-                .type(DumpNode.NodeType.OBJECT)
-                .clazz(clazz)
-                .typeName(TypeNameUtil.getSimpleName(clazz))
-                .children(children)
-                .build();
+        return DumpNode.ofObject(clazz, fields);
     }
 
-    /**
-     * Creates a redacted placeholder node.
-     */
-    private DumpNode createRedactedNode(Class<?> fieldType) {
-        return DumpNode.builder()
-                .type(DumpNode.NodeType.STRING)
-                .clazz(fieldType)
-                .value("<redacted>")
-                .typeName(fieldType.getSimpleName())
-                .build();
-    }
-
-    /**
-     * Checks if a class has a custom toString() method.
-     */
     private boolean hasCustomToString(Class<?> clazz) {
         try {
-            // Check if toString() is overridden (not from Object class)
-            return !clazz.getMethod("toString").getDeclaringClass().equals(Object.class);
+            return !clazz.getMethod("toString")
+                    .getDeclaringClass()
+                    .equals(Object.class);
         } catch (NoSuchMethodException e) {
             return false;
         }
-    }
-
-    /**
-     * Resets the analyzer state, clearing visited objects.
-     * This allows re-analyzing the same objects without circular reference detection.
-     */
-    public void reset() {
-        visitedObjects.clear();
-    }
-
-    /**
-     * Gets the type classifier.
-     */
-    public TypeClassifier getTypeClassifier() {
-        return typeClassifier;
-    }
-
-    /**
-     * Gets the field filter.
-     */
-    public FieldFilter getFieldFilter() {
-        return fieldFilter;
     }
 }

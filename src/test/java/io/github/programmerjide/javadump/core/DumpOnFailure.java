@@ -1,6 +1,5 @@
-package io.github.programmerjide.javadump.test;
+package io.github.programmerjide.javadump.core;
 
-import io.github.programmerjide.javadump.core.Dump;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestWatcher;
 

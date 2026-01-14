@@ -30,6 +30,14 @@ public class DiffFormatter {
      */
     public String format(DiffAnalyzer.DiffResult result,
                          StackTraceUtil.CallSite callSite) {
+        if (result == null) {
+            if (config.isColorEnabled()) {
+                return ColorUtil.dim("(no diff result)");
+            } else {
+                return "(no diff result)";
+            }
+        }
+
         StringBuilder sb = new StringBuilder();
 
         // Header
@@ -112,6 +120,14 @@ public class DiffFormatter {
 
         sb.append(getHtmlHeader());
         sb.append("<div class=\"diff-output\">\n");
+
+        // Handle null result
+        if (result == null) {
+            sb.append("<div class=\"diff-no-changes\">(no diff result)</div>\n");
+            sb.append("</div>\n");
+            sb.append(getHtmlFooter());
+            return sb.toString();
+        }
 
         // Header
         if (callSite != null) {

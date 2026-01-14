@@ -17,10 +17,13 @@ class FormatterTest {
 
     @BeforeEach
     void setUp() {
+        // Force colors ON/OFF before creating formatters
+        ColorUtil.forceEnableColors();
         DumperConfig config = new DumperConfig(10, 100, true);
-        DumperConfig configNoColor = new DumperConfig(10, 100, false);
-
         formatter = new Formatter(config);
+
+        ColorUtil.forceDisableColors();
+        DumperConfig configNoColor = new DumperConfig(10, 100, false);
         formatterNoColor = new Formatter(configNoColor);
     }
 
@@ -31,7 +34,7 @@ class FormatterTest {
         DumpNode node = DumpNode.ofNull();
         String result = formatterNoColor.formatNode(node, 0);
 
-        assertThat(result).contains("null");
+        assertThat(result).isEqualTo("null");
     }
 
     @Test
@@ -39,19 +42,30 @@ class FormatterTest {
         DumpNode node = DumpNode.ofPrimitive(42, Integer.class);
         String result = formatterNoColor.formatNode(node, 0);
 
-        assertThat(result).contains("42");
+        assertThat(result).isEqualTo("Integer 42");
     }
 
     @Test
     void formatNode_boolean_returnsFormattedBoolean() {
-        DumpNode nodeTrue = DumpNode.ofPrimitive(true, Boolean.class);
-        DumpNode nodeFalse = DumpNode.ofPrimitive(false, Boolean.class);
+        // Test with proper boolean factory method
+        DumpNode nodeTrue = DumpNode.ofBoolean(true);
+        DumpNode nodeFalse = DumpNode.ofBoolean(false);
 
         String resultTrue = formatterNoColor.formatNode(nodeTrue, 0);
         String resultFalse = formatterNoColor.formatNode(nodeFalse, 0);
 
-        assertThat(resultTrue).contains("true");
-        assertThat(resultFalse).contains("false");
+        assertThat(resultTrue).isEqualTo("boolean true");
+        assertThat(resultFalse).isEqualTo("boolean false");
+
+        // Also test with primitive if you want
+        DumpNode nodeTruePrimitive = DumpNode.ofPrimitive(true, boolean.class);
+        DumpNode nodeFalsePrimitive = DumpNode.ofPrimitive(false, boolean.class);
+
+        String resultTruePrimitive = formatterNoColor.formatNode(nodeTruePrimitive, 0);
+        String resultFalsePrimitive = formatterNoColor.formatNode(nodeFalsePrimitive, 0);
+
+        assertThat(resultTruePrimitive).isEqualTo("boolean true");
+        assertThat(resultFalsePrimitive).isEqualTo("boolean false");
     }
 
     @Test
@@ -59,7 +73,7 @@ class FormatterTest {
         DumpNode node = DumpNode.ofString("Hello World");
         String result = formatterNoColor.formatNode(node, 0);
 
-        assertThat(result).contains("\"Hello World\"");
+        assertThat(result).isEqualTo("\"Hello World\"");
     }
 
     @Test
@@ -67,9 +81,7 @@ class FormatterTest {
         DumpNode node = DumpNode.ofEnum(TestEnum.VALUE_A);
         String result = formatterNoColor.formatNode(node, 0);
 
-        assertThat(result)
-                .contains("TestEnum")
-                .contains("VALUE_A");
+        assertThat(result).isEqualTo("TestEnum.VALUE_A");
     }
 
     // ==================== Array Formatting Tests ====================
@@ -79,10 +91,7 @@ class FormatterTest {
         DumpNode node = DumpNode.ofArray(int[].class, List.of(), 0, false);
         String result = formatterNoColor.formatNode(node, 0);
 
-        assertThat(result)
-                .contains("int[]")
-                .contains("[0]")
-                .contains("{}");
+        assertThat(result).isEqualTo("#int[][0] {}");
     }
 
     @Test
@@ -96,12 +105,13 @@ class FormatterTest {
         DumpNode node = DumpNode.ofArray(int[].class, elements, 3, false);
         String result = formatterNoColor.formatNode(node, 0);
 
-        assertThat(result)
-                .contains("int[]")
-                .contains("[3]")
-                .contains("0")
-                .contains("1")
-                .contains("2");
+        // Check the exact format
+        String expected = "#int[][3] {\n" +
+                "  0 → Integer 1\n" +
+                "  1 → Integer 2\n" +
+                "  2 → Integer 3\n" +
+                "}";
+        assertThat(result).isEqualTo(expected);
     }
 
     @Test
@@ -115,8 +125,10 @@ class FormatterTest {
         String result = formatterNoColor.formatNode(node, 0);
 
         assertThat(result)
-                .contains("[100]")
-                .contains("(truncated)");
+                .contains("#int[][100] {")
+                .contains("... (truncated)")
+                .contains("0 → Integer 1")
+                .contains("1 → Integer 2");
     }
 
     // ==================== Collection Formatting Tests ====================
@@ -126,10 +138,7 @@ class FormatterTest {
         DumpNode node = DumpNode.ofCollection(ArrayList.class, List.of(), 0, false);
         String result = formatterNoColor.formatNode(node, 0);
 
-        assertThat(result)
-                .contains("ArrayList")
-                .contains("[0]")
-                .contains("{}");
+        assertThat(result).isEqualTo("#ArrayList[0] {}");
     }
 
     @Test
@@ -143,12 +152,12 @@ class FormatterTest {
         DumpNode node = DumpNode.ofCollection(ArrayList.class, elements, 3, false);
         String result = formatterNoColor.formatNode(node, 0);
 
-        assertThat(result)
-                .contains("ArrayList")
-                .contains("[3]")
-                .contains("\"a\"")
-                .contains("\"b\"")
-                .contains("\"c\"");
+        String expected = "#ArrayList[3] {\n" +
+                "  0 → \"a\"\n" +
+                "  1 → \"b\"\n" +
+                "  2 → \"c\"\n" +
+                "}";
+        assertThat(result).isEqualTo(expected);
     }
 
     // ==================== Map Formatting Tests ====================
@@ -158,10 +167,7 @@ class FormatterTest {
         DumpNode node = DumpNode.ofMap(HashMap.class, Map.of(), 0, false);
         String result = formatterNoColor.formatNode(node, 0);
 
-        assertThat(result)
-                .contains("HashMap")
-                .contains("[0]")
-                .contains("{}");
+        assertThat(result).isEqualTo("#HashMap[0] {}");
     }
 
     @Test
@@ -173,11 +179,11 @@ class FormatterTest {
         DumpNode node = DumpNode.ofMap(HashMap.class, entries, 2, false);
         String result = formatterNoColor.formatNode(node, 0);
 
-        assertThat(result)
-                .contains("HashMap")
-                .contains("[2]")
-                .contains("key1")
-                .contains("key2");
+        String expected = "#HashMap[2] {\n" +
+                "  \"key1\" → Integer 1\n" +
+                "  \"key2\" → Integer 2\n" +
+                "}";
+        assertThat(result).isEqualTo(expected);
     }
 
     // ==================== Object Formatting Tests ====================
@@ -187,9 +193,7 @@ class FormatterTest {
         DumpNode node = DumpNode.ofObject(TestClass.class, Map.of());
         String result = formatterNoColor.formatNode(node, 0);
 
-        assertThat(result)
-                .contains("TestClass")
-                .contains("{}");
+        assertThat(result).isEqualTo("#TestClass {}");
     }
 
     @Test
@@ -201,12 +205,11 @@ class FormatterTest {
         DumpNode node = DumpNode.ofObject(TestClass.class, fields);
         String result = formatterNoColor.formatNode(node, 0);
 
-        assertThat(result)
-                .contains("TestClass")
-                .contains("name")
-                .contains("\"Alice\"")
-                .contains("age")
-                .contains("30");
+        String expected = "#TestClass {\n" +
+                "  name → \"Alice\"\n" +
+                "  age → Integer 30\n" +
+                "}";
+        assertThat(result).isEqualTo(expected);
     }
 
     // ==================== Special Markers Tests ====================
@@ -216,9 +219,7 @@ class FormatterTest {
         DumpNode node = DumpNode.cyclic(TestClass.class);
         String result = formatterNoColor.formatNode(node, 0);
 
-        assertThat(result)
-                .contains("TestClass")
-                .contains("(cyclic)");
+        assertThat(result).isEqualTo("↻ (circular)");
     }
 
     @Test
@@ -226,7 +227,7 @@ class FormatterTest {
         DumpNode node = DumpNode.truncated();
         String result = formatterNoColor.formatNode(node, 0);
 
-        assertThat(result).contains("(truncated)");
+        assertThat(result).isEqualTo("... (truncated)");
     }
 
     @Test
@@ -234,15 +235,15 @@ class FormatterTest {
         DumpNode node = DumpNode.ofError("Access denied");
         String result = formatterNoColor.formatNode(node, 0);
 
-        assertThat(result)
-                .contains("error")
-                .contains("Access denied");
+        assertThat(result).isEqualTo("[ERROR: Access denied]");
     }
 
     // ==================== Color Tests ====================
 
     @Test
     void format_withColorEnabled_containsAnsiCodes() {
+        ColorUtil.forceEnableColors();
+
         DumpNode node = DumpNode.ofString("test");
         String result = formatter.formatNode(node, 0);
 
@@ -268,9 +269,13 @@ class FormatterTest {
 
         String result = formatterNoColor.format(node1, node2);
 
-        assertThat(result)
-                .contains("42")
-                .contains("\"test\"");
+        // Remove header line (call site) from comparison
+        String[] lines = result.split("\n");
+        if (lines.length > 2) {
+            result = lines[1] + "\n" + lines[2];
+        }
+
+        assertThat(result).contains("Integer 42").contains("\"test\"");
     }
 
     @Test
@@ -303,12 +308,12 @@ class FormatterTest {
 
         String result = formatterNoColor.formatNode(outerObject, 0);
 
-        assertThat(result)
-                .contains("OuterClass")
-                .contains("inner")
-                .contains("InnerClass")
-                .contains("value")
-                .contains("42");
+        String expected = "#OuterClass {\n" +
+                "  inner → #InnerClass {\n" +
+                "    value → Integer 42\n" +
+                "  }\n" +
+                "}";
+        assertThat(result).isEqualTo(expected);
     }
 
     // ==================== Test Classes ====================

@@ -22,15 +22,15 @@ import java.util.Optional;
 public class Formatter {
 
     private final DumperConfig config;
-    private final ColorUtil colorUtil;
-    private final ValueFormatter valueFormatter;
-    private final StructureFormatter structureFormatter;
 
     public Formatter(DumperConfig config) {
         this.config = config;
-        this.colorUtil = config.isColorEnabled() ? ColorUtil.create() : ColorUtil.disabled();
-        this.valueFormatter = new ValueFormatter(config);
-        this.structureFormatter = new StructureFormatter(colorUtil);
+        // Configure ColorUtil based on config
+        if (config.isColorEnabled()) {
+            ColorUtil.forceEnableColors();
+        } else {
+            ColorUtil.forceDisableColors();
+        }
     }
 
     /**
@@ -73,24 +73,74 @@ public class Formatter {
      */
     public String formatNode(DumpNode node, int depth) {
         if (node == null) {
-            return valueFormatter.formatNull();
+            return formatNull();
         }
 
         return switch (node.getType()) {
-            case NULL -> valueFormatter.formatNull();
-            case PRIMITIVE -> valueFormatter.formatPrimitive(node);
-            case STRING -> valueFormatter.formatString(node);
-            case ENUM -> valueFormatter.formatEnum(node);
-            case NUMBER -> valueFormatter.formatNumber(node);
-            case BOOLEAN -> valueFormatter.formatBoolean(node);
+            case NULL -> formatNull();
+            case PRIMITIVE -> formatPrimitive(node);
+            case STRING -> formatString(node);
+            case ENUM -> formatEnum(node);
+            case NUMBER -> formatNumber(node);
+            case BOOLEAN -> formatBoolean(node);
             case ARRAY -> formatArray(node, depth);
             case COLLECTION -> formatCollection(node, depth);
             case MAP -> formatMap(node, depth);
             case OBJECT -> formatObject(node, depth);
-            case CYCLIC -> valueFormatter.formatCyclic(node);
-            case TRUNCATED -> valueFormatter.formatTruncated();
-            case ERROR -> valueFormatter.formatError(node);
+            case CYCLIC -> formatCyclic(node);
+            case TRUNCATED -> formatTruncated();
+            case ERROR -> formatError(node);
         };
+    }
+
+    /**
+     * Formats a null value.
+     */
+    private String formatNull() {
+        return ColorUtil.keyword("null");
+    }
+
+    /**
+     * Formats a primitive node.
+     */
+    private String formatPrimitive(DumpNode node) {
+        // Handle boolean primitives as booleans
+        if (node.getClazz() == boolean.class || node.getClazz() == Boolean.class) {
+            return formatBoolean(node);
+        }
+
+        return ColorUtil.type(node.getTypeName()) + " " + ColorUtil.number(String.valueOf(node.getValue()));
+    }
+
+    /**
+     * Formats a string node.
+     */
+    private String formatString(DumpNode node) {
+        String str = String.valueOf(node.getValue());
+        String escaped = StringUtil.escape(str);
+        return ColorUtil.string("\"" + escaped + "\"");
+    }
+
+    /**
+     * Formats an enum node.
+     */
+    private String formatEnum(DumpNode node) {
+        return ColorUtil.type(node.getTypeName()) + "." + ColorUtil.keyword(String.valueOf(node.getValue()));
+    }
+
+    /**
+     * Formats a number node.
+     */
+    private String formatNumber(DumpNode node) {
+        return ColorUtil.type(node.getTypeName()) + " " + ColorUtil.number(String.valueOf(node.getValue()));
+    }
+
+    /**
+     * Formats a boolean node.
+     */
+    private String formatBoolean(DumpNode node) {
+        // Always output "boolean" for boolean nodes
+        return ColorUtil.type("boolean") + " " + ColorUtil.keyword(String.valueOf(node.getValue()));
     }
 
     /**
@@ -99,26 +149,26 @@ public class Formatter {
     private String formatArray(DumpNode node, int depth) {
         StringBuilder sb = new StringBuilder();
 
-        // Type header: #int[3]
-        sb.append(colorUtil.formatType(node.getClazz()));
-        sb.append(colorUtil.structural("["));
-        sb.append(colorUtil.yellow(String.valueOf(node.getDisplaySize())));
-        sb.append(colorUtil.structural("]"));
+        // Type header: #int[][3]
+        sb.append(ColorUtil.formatType(node.getClazz()));
+        sb.append(ColorUtil.structural("["));
+        sb.append(ColorUtil.yellow(String.valueOf(node.getDisplaySize())));
+        sb.append(ColorUtil.structural("]"));
 
         if (node.isEmpty()) {
-            sb.append(" ").append(colorUtil.structural("{}"));
+            sb.append(" ").append(ColorUtil.structural("{}"));
             return sb.toString();
         }
 
-        sb.append(" ").append(colorUtil.structural("{"));
+        sb.append(" ").append(ColorUtil.structural("{"));
         sb.append("\n");
 
         // Format elements
         for (int i = 0; i < node.getElements().size(); i++) {
             DumpNode element = node.getElements().get(i);
             sb.append(StringUtil.indent(depth + 1));
-            sb.append(colorUtil.gray(String.valueOf(i)));
-            sb.append(colorUtil.arrow());
+            sb.append(ColorUtil.gray(String.valueOf(i)));
+            sb.append(ColorUtil.arrow());
             sb.append(formatNode(element, depth + 1));
             sb.append("\n");
         }
@@ -126,12 +176,12 @@ public class Formatter {
         // Truncation marker
         if (node.isTruncated()) {
             sb.append(StringUtil.indent(depth + 1));
-            sb.append(colorUtil.formatTruncated());
+            sb.append(ColorUtil.formatTruncated());
             sb.append("\n");
         }
 
         sb.append(StringUtil.indent(depth));
-        sb.append(colorUtil.structural("}"));
+        sb.append(ColorUtil.structural("}"));
 
         return sb.toString();
     }
@@ -142,27 +192,27 @@ public class Formatter {
     private String formatCollection(DumpNode node, int depth) {
         StringBuilder sb = new StringBuilder();
 
-        // Type header: #List[3]
+        // Type header: #ArrayList[3]
         String typeName = TypeNameUtil.getSimpleName(node.getClazz());
-        sb.append(colorUtil.formatType(typeName));
-        sb.append(colorUtil.structural("["));
-        sb.append(colorUtil.yellow(String.valueOf(node.getDisplaySize())));
-        sb.append(colorUtil.structural("]"));
+        sb.append(ColorUtil.formatType(typeName));
+        sb.append(ColorUtil.structural("["));
+        sb.append(ColorUtil.yellow(String.valueOf(node.getDisplaySize())));
+        sb.append(ColorUtil.structural("]"));
 
         if (node.isEmpty()) {
-            sb.append(" ").append(colorUtil.structural("{}"));
+            sb.append(" ").append(ColorUtil.structural("{}"));
             return sb.toString();
         }
 
-        sb.append(" ").append(colorUtil.structural("{"));
+        sb.append(" ").append(ColorUtil.structural("{"));
         sb.append("\n");
 
         // Format elements
         for (int i = 0; i < node.getElements().size(); i++) {
             DumpNode element = node.getElements().get(i);
             sb.append(StringUtil.indent(depth + 1));
-            sb.append(colorUtil.gray(String.valueOf(i)));
-            sb.append(colorUtil.arrow());
+            sb.append(ColorUtil.gray(String.valueOf(i)));
+            sb.append(ColorUtil.arrow());
             sb.append(formatNode(element, depth + 1));
             sb.append("\n");
         }
@@ -170,12 +220,12 @@ public class Formatter {
         // Truncation marker
         if (node.isTruncated()) {
             sb.append(StringUtil.indent(depth + 1));
-            sb.append(colorUtil.formatTruncated());
+            sb.append(ColorUtil.formatTruncated());
             sb.append("\n");
         }
 
         sb.append(StringUtil.indent(depth));
-        sb.append(colorUtil.structural("}"));
+        sb.append(ColorUtil.structural("}"));
 
         return sb.toString();
     }
@@ -186,26 +236,26 @@ public class Formatter {
     private String formatMap(DumpNode node, int depth) {
         StringBuilder sb = new StringBuilder();
 
-        // Type header: #Map[3]
+        // Type header: #HashMap[2]
         String typeName = TypeNameUtil.getSimpleName(node.getClazz());
-        sb.append(colorUtil.formatType(typeName));
-        sb.append(colorUtil.structural("["));
-        sb.append(colorUtil.yellow(String.valueOf(node.getDisplaySize())));
-        sb.append(colorUtil.structural("]"));
+        sb.append(ColorUtil.formatType(typeName));
+        sb.append(ColorUtil.structural("["));
+        sb.append(ColorUtil.yellow(String.valueOf(node.getDisplaySize())));
+        sb.append(ColorUtil.structural("]"));
 
         if (node.isEmpty()) {
-            sb.append(" ").append(colorUtil.structural("{}"));
+            sb.append(" ").append(ColorUtil.structural("{}"));
             return sb.toString();
         }
 
-        sb.append(" ").append(colorUtil.structural("{"));
+        sb.append(" ").append(ColorUtil.structural("{"));
         sb.append("\n");
 
         // Format entries
         for (Map.Entry<DumpNode, DumpNode> entry : node.getEntries().entrySet()) {
             sb.append(StringUtil.indent(depth + 1));
             sb.append(formatNode(entry.getKey(), depth + 1));
-            sb.append(colorUtil.arrow());
+            sb.append(ColorUtil.arrow());
             sb.append(formatNode(entry.getValue(), depth + 1));
             sb.append("\n");
         }
@@ -213,12 +263,12 @@ public class Formatter {
         // Truncation marker
         if (node.isTruncated()) {
             sb.append(StringUtil.indent(depth + 1));
-            sb.append(colorUtil.formatTruncated());
+            sb.append(ColorUtil.formatTruncated());
             sb.append("\n");
         }
 
         sb.append(StringUtil.indent(depth));
-        sb.append(colorUtil.structural("}"));
+        sb.append(ColorUtil.structural("}"));
 
         return sb.toString();
     }
@@ -229,31 +279,54 @@ public class Formatter {
     private String formatObject(DumpNode node, int depth) {
         StringBuilder sb = new StringBuilder();
 
-        // Type header: #User
+        // Type header: #TestClass
         String typeName = TypeNameUtil.getSimpleName(node.getClazz());
-        sb.append(colorUtil.formatType(typeName));
+        sb.append(ColorUtil.formatType(typeName));
 
         if (node.isEmpty()) {
-            sb.append(" ").append(colorUtil.structural("{}"));
+            sb.append(" ").append(ColorUtil.structural("{}"));
             return sb.toString();
         }
 
-        sb.append(" ").append(colorUtil.structural("{"));
+        sb.append(" ").append(ColorUtil.structural("{"));
         sb.append("\n");
 
         // Format fields
         for (Map.Entry<String, DumpNode> field : node.getFields().entrySet()) {
             sb.append(StringUtil.indent(depth + 1));
-            sb.append(colorUtil.cyan(field.getKey()));
-            sb.append(colorUtil.arrow());
+            sb.append(ColorUtil.cyan(field.getKey()));
+            sb.append(ColorUtil.arrow());
             sb.append(formatNode(field.getValue(), depth + 1));
             sb.append("\n");
         }
 
         sb.append(StringUtil.indent(depth));
-        sb.append(colorUtil.structural("}"));
+        sb.append(ColorUtil.structural("}"));
 
         return sb.toString();
+    }
+
+    /**
+     * Formats a cyclic reference.
+     */
+    private String formatCyclic(DumpNode node) {
+        return ColorUtil.formatCyclic();
+    }
+
+    /**
+     * Formats a truncation marker.
+     */
+    private String formatTruncated() {
+        return ColorUtil.formatTruncated();
+    }
+
+    /**
+     * Formats an error node.
+     */
+    private String formatError(DumpNode node) {
+        String message = node.getValue() != null ?
+                String.valueOf(node.getValue()) : "Error analyzing object";
+        return ColorUtil.error("[ERROR: " + message + "]");
     }
 
     /**
@@ -261,13 +334,6 @@ public class Formatter {
      */
     private String formatHeader(StackTraceElement callSite) {
         String location = StackTraceUtil.formatCallSite(callSite);
-        return colorUtil.formatHeader(location, callSite.getLineNumber());
-    }
-
-    /**
-     * Gets the ColorUtil instance.
-     */
-    public ColorUtil getColorUtil() {
-        return colorUtil;
+        return ColorUtil.formatHeader(location, callSite.getLineNumber());
     }
 }

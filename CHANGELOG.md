@@ -5,18 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0] – 2026-01-15
 
 ### Added
-- Initial project setup
-- Basic Dump.dump() method
-- Builder pattern for configuration
+- Initial open-source release
+- Core `Dump.dump()` API
+- Fluent builder-based configuration
+- Colorized console output
+- HTML output support
+- JSON output support
+- Object diff functionality
+- Cyclic reference detection
+- Field filtering and redaction
+- Maven Central publishing support
+- Comprehensive test coverage with JaCoCo
 
-### TODO
-- Implement core dump functionality
-- Add colorized console output
-- Add HTML output
-- Add JSON output
-- Add diff functionality
-- Add cyclic reference detection
-- Add field filtering and redaction
+## [Unreleased]

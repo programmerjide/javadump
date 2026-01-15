@@ -393,9 +393,9 @@ void testUserCreation() {
 |---------|----------|-------------|---------------------|----------------------|-----------|
 | **Zero Dependencies** | ✅ | ✅ | ❌ | ❌ | ❌ |
 | **Colorized Output** | ✅ | ✅ | ❌ | ❌ | ❌ |
-| **HTML Output** | 🔜 | ✅ | ❌ | ❌ | ❌ |
-| **JSON Output** | 🔜 | ✅ | ❌ | ✅ | ❌ |
-| **Diff Support** | 🔜 | ✅ | ❌ | ❌ | ❌ |
+| **HTML Output** | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **JSON Output** | ✅ | ✅ | ❌ | ✅ | ❌ |
+| **Diff Support** | ✅ | ✅ | ❌ | ❌ | ❌ |
 | **Call Site Detection** | ✅ | ✅ | ❌ | ❌ | ❌ |
 | **Circular Reference Detection** | ✅ | ✅ | ⚠️ | ✅ | ⚠️ |
 | **Private Field Access** | ✅ | ✅ | ⚠️ | ✅ | ✅ |

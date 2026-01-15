@@ -4,8 +4,10 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.programmerjide/javadump.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.programmerjide%22%20AND%20a:%22javadump%22)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Java Version](https://img.shields.io/badge/Java-11+-blue.svg)](https://www.oracle.com/java/)
+[![Java Version](https://img.shields.io/badge/Java-25-blue.svg)](https://www.oracle.com/java/)
+[![Maven Central](https://img.shields.io/badge/Maven-4.0.0-C71A36.svg)](https://maven.apache.org/)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/programmerjide/javadump/build.yml?branch=main)](https://github.com/programmerjide/javadump/actions)
+
 
 **A developer-friendly, zero-dependency debug dumper for Java**
 

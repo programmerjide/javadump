@@ -83,7 +83,7 @@ Dump.dump(user);
 <dependency>
     <groupId>io.github.programmerjide</groupId>
     <artifactId>javadump</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.2</version>
 </dependency>
 ```
 

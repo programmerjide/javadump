@@ -33,25 +33,14 @@ java -cp target/javadump-1.0.0.jar io.github.programmerjide.javadump.examples.du
 
 You should see colorized output showing:
 ```
-=============================================================
+===================================
   JavaDump - Basic Usage Examples
-=============================================================
+===================================
 
-────────────────────────────────────────────────────────────
-📍 1. Primitive Types
-────────────────────────────────────────────────────────────
-
-→ Integer:
-<#dump // BasicDumpExample.java:42
-42 #int
-
-→ Double:
-<#dump // BasicDumpExample.java:45
-3.14159 #double
-
-→ Boolean (true):
-<#dump // BasicDumpExample.java:48
-true #boolean
+![Primitive Output](1.png)
+![Arrays Output](2.png)
+![Custom Objects and Multiple Values in one call](2-17 at 12.27.10 pm.png)
+![Mixed Types](2-17 at 12.27.29 pm.png)
 
 ...
 ```

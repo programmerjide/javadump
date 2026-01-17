@@ -10,7 +10,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/programmerjide/javadump)](https://github.com/programmerjide/javadump/stargazers)
 
 
-**A developer-friendly, zero-dependency debug dumper for Java**
+**A developer-friendly, zero-dependency debug dumper for Java 17+**
 
 Pretty, colorized output of your objects, arrays, collections, and more - with cyclic reference detection, field filtering, and sensitive data redaction.
 

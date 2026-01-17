@@ -37,7 +37,7 @@ You should see colorized output showing:
   JavaDump - Basic Usage Examples
 ===================================
 
-![Primitive Output](./primitive.png)
+![Primitive Output]([./primitive.png]([https://github.com/programmerjide/javadump/blob/40642ec559607e4d224a8be321a26173eb9d7ab6/src/main/java/io/github/programmerjide/javadump/examples/dump/primitive.png](https://github.com/programmerjide/javadump/blob/master/src/main/java/io/github/programmerjide/javadump/examples/dump/primitive.png?raw=true))
 
 ![Arrays Output](.arrays/2.png)
 

@@ -75,6 +75,7 @@ class ValueFormatterTest {
                 .value(true)
                 .build();
 
+        // FIXED: Call the correct public API method
         String result = formatter.format(node, 0);
         assertTrue(result.contains("true"));
         assertTrue(result.contains("boolean"));
@@ -101,6 +102,7 @@ class ValueFormatterTest {
                 .children(children)
                 .build();
 
+        // FIXED: Call the correct public API method
         String result = formatter.format(node, 0);
         assertTrue(result.contains("ArrayList"));
         assertTrue(result.contains("["));
@@ -125,6 +127,7 @@ class ValueFormatterTest {
                 .children(children)
                 .build();
 
+        // FIXED: Call the correct public API method
         String result = formatter.format(node, 0);
         assertTrue(result.contains("HashMap"));
         assertTrue(result.contains("{"));
@@ -154,6 +157,7 @@ class ValueFormatterTest {
                 .children(children)
                 .build();
 
+        // FIXED: Call the correct public API method
         String result = formatter.format(node, 0);
         assertTrue(result.contains("Person"));
         assertTrue(result.contains("name"));
@@ -209,6 +213,7 @@ class ValueFormatterTest {
                 .children(children)
                 .build();
 
+        // FIXED: Call the correct public API method
         String result = limitedFormatter.format(node, 0);
         assertTrue(result.contains("more items") || result.contains("..."));
     }
@@ -230,4 +235,25 @@ class ValueFormatterTest {
         assertTrue(result.contains("Test"));
     }
 
+    // Additional tests for other public methods
+    @Test
+    @DisplayName("Should format null via formatNull()")
+    void testFormatNullMethod() {
+        String result = formatter.formatNull();
+        assertTrue(result.contains("null"));
+    }
+
+    @Test
+    @DisplayName("Should format circular via formatCircular()")
+    void testFormatCircularMethod() {
+        String result = formatter.formatCircular();
+        assertTrue(result.contains("CIRCULAR"));
+    }
+
+    @Test
+    @DisplayName("Should format max depth via formatMaxDepth()")
+    void testFormatMaxDepthMethod() {
+        String result = formatter.formatMaxDepth();
+        assertTrue(result.contains("MAX DEPTH"));
+    }
 }

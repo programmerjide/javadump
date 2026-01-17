@@ -36,8 +36,9 @@ You should see colorized output showing:
 ===================================
   JavaDump - Basic Usage Examples
 ===================================
+```
 
-![Primitive Output](https://github.com/programmerjide/javadump/blob/40642ec559607e4d224a8be321a26173eb9d7ab6/src/main/java/io/github/programmerjide/javadump/examples/dump/primitive.png)
+![Primitive Output](https://github.com/programmerjide/javadump/blob/master/src/main/java/io/github/programmerjide/javadump/examples/dump/primitive.png?raw=true)
 
 ![Arrays Output](https://github.com/programmerjide/javadump/blob/4f3f6165bc8d3b153b7e0d6bc177d92ef60a1a06/src/main/java/io/github/programmerjide/javadump/examples/dump/arrays.png)
 
@@ -45,7 +46,6 @@ You should see colorized output showing:
 
 ![Mixed Types](https://github.com/programmerjide/javadump/blob/4f3f6165bc8d3b153b7e0d6bc177d92ef60a1a06/src/main/java/io/github/programmerjide/javadump/examples/dump/mixedtypes.png)
 
-```
 
 ## 🎓 What You'll Learn
 

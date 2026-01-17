@@ -37,16 +37,14 @@ You should see colorized output showing:
   JavaDump - Basic Usage Examples
 ===================================
 
-![Primitive Output](src/main/java/io/github/programmerjide/javadump/examples/dump/1.png)
+![Primitive Output](./primitive.png)
 
-![Arrays Output](src/main/java/io/github/programmerjide/javadump/examples/dump/2.png)
+![Arrays Output](.arrays/2.png)
 
-![Custom Objects and Multiple Values in one call](src/main/java/io/github/programmerjide/javadump/examples/dump/2-17 at 12.27.10 pm.png)
+![Custom Objects and Multiple Values in one call](./customs.png)
 
-![Mixed Types](src/main/java/io/github/programmerjide/javadump/examples/dump/2-17 at 12.27.29 pm.png)
+![Mixed Types](./mixedtypes.png)
 
-
-...
 ```
 
 ## 🎓 What You'll Learn

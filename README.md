@@ -3,14 +3,14 @@
 <div align="center">
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Java](ttps://img.shields.io/badge/Java-17+-orange.svg)](https://www.oracle.com/java/)
+[![Java](https://img.shields.io/badge/Java-17+-orange.svg)](https://www.oracle.com/java/)
 [![Maven](https://img.shields.io/badge/Maven-4.0.0-C71A36.svg)](https://maven.apache.org/)
 [![GitHub release](https://img.shields.io/github/v/release/programmerjide/javadump)](https://github.com/programmerjide/javadump/releases)
 [![GitHub issues](https://img.shields.io/github/issues/programmerjide/javadump)](https://github.com/programmerjide/javadump/issues)
 [![GitHub stars](https://img.shields.io/github/stars/programmerjide/javadump)](https://github.com/programmerjide/javadump/stargazers)
 
 
-**A developer-friendly, zero-dependency debug dumper for Java**
+**A developer-friendly, zero-dependency debug dumper for Java 17+**
 
 Pretty, colorized output of your objects, arrays, collections, and more - with cyclic reference detection, field filtering, and sensitive data redaction.
 

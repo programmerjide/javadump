@@ -134,7 +134,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           mvn clean verify sonar:sonar \
-            -Dspotless.skip=true \
             -Dsonar.projectKey=programmerjide_javadump \
             -Dsonar.organization=programmerjide \
             -Dsonar.host.url=https://sonarcloud.io

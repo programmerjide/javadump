@@ -2,10 +2,13 @@
 
 <div align="center">
 
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.programmerjide/javadump.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.programmerjide%22%20AND%20a:%22javadump%22)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Java Version](https://img.shields.io/badge/Java-11+-blue.svg)](https://www.oracle.com/java/)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/programmerjide/javadump/build.yml?branch=main)](https://github.com/programmerjide/javadump/actions)
+[![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://www.oracle.com/java/)
+[![Maven](https://img.shields.io/badge/Maven-4.0.0-C71A36.svg)](https://maven.apache.org/)
+[![GitHub release](https://img.shields.io/github/v/release/programmerjide/javadump)](https://github.com/programmerjide/javadump/releases)
+[![GitHub issues](https://img.shields.io/github/issues/programmerjide/javadump)](https://github.com/programmerjide/javadump/issues)
+[![GitHub stars](https://img.shields.io/github/stars/programmerjide/javadump)](https://github.com/programmerjide/javadump/stargazers)
+
 
 **A developer-friendly, zero-dependency debug dumper for Java**
 
@@ -390,9 +393,9 @@ void testUserCreation() {
 |---------|----------|-------------|---------------------|----------------------|-----------|
 | **Zero Dependencies** | ✅ | ✅ | ❌ | ❌ | ❌ |
 | **Colorized Output** | ✅ | ✅ | ❌ | ❌ | ❌ |
-| **HTML Output** | 🔜 | ✅ | ❌ | ❌ | ❌ |
-| **JSON Output** | 🔜 | ✅ | ❌ | ✅ | ❌ |
-| **Diff Support** | 🔜 | ✅ | ❌ | ❌ | ❌ |
+| **HTML Output** | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **JSON Output** | ✅ | ✅ | ❌ | ✅ | ❌ |
+| **Diff Support** | ✅ | ✅ | ❌ | ❌ | ❌ |
 | **Call Site Detection** | ✅ | ✅ | ❌ | ❌ | ❌ |
 | **Circular Reference Detection** | ✅ | ✅ | ⚠️ | ✅ | ⚠️ |
 | **Private Field Access** | ✅ | ✅ | ⚠️ | ✅ | ✅ |

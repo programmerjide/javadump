@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentation
+    url: https://github.com/programmerjide/javadump/wiki
+    about: Check our documentation for common questions
+  - name: 💬 Discussions
+    url: https://github.com/programmerjide/javadump/discussions
+    about: Ask questions and discuss ideas
+  - name: ❓ Stack Overflow
+    url: https://stackoverflow.com/questions/tagged/javadump
+    about: Get help from the community

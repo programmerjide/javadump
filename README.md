@@ -1,5 +1,3 @@
-# 🚀 JavaDump
-
 <div align="center">
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -9,6 +7,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/programmerjide/javadump)](https://github.com/programmerjide/javadump/issues)
 [![GitHub stars](https://img.shields.io/github/stars/programmerjide/javadump)](https://github.com/programmerjide/javadump/stargazers)
 
+![JavaDump](./docs/images/javadump.png)
 
 **A developer-friendly, zero-dependency debug dumper for Java 17+**
 

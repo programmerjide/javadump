@@ -38,5 +38,4 @@ gpg-secret.asc
 hs_err_pid*
 
 # sh files
-create-issues.sh
-create-labels.sh
+*.sh

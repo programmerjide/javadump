@@ -7,6 +7,7 @@ import io.github.programmerjide.javadump.util.StringUtil;
 
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Formats individual values from DumpNode objects.
@@ -211,16 +212,30 @@ public class ValueFormatter {
     private String formatCollection(DumpNode node, int depth) {
         StringBuilder sb = new StringBuilder();
 
-        // Use getElements() for collections/arrays
+        // Try to get data from elements first, then from children
         List<DumpNode> elements = node.getElements();
+        Map<String, DumpNode> children = node.getChildren();
+
+        boolean useElements = !elements.isEmpty();
+        boolean useChildren = !children.isEmpty();
+
+        int size = 0;
+        if (useElements) {
+            size = elements.size();
+        } else if (useChildren) {
+            size = children.size();
+        } else {
+            // Check display size if no elements/children
+            size = node.getDisplaySize();
+        }
 
         // Type header with actual size
         String header = String.format("%s[%d]",
                 node.getTypeName(),
-                node.getDisplaySize() > 0 ? node.getDisplaySize() : elements.size());
+                size);
         sb.append(colorize(header, ColorUtil::type));
 
-        if (elements.isEmpty()) {
+        if (size == 0) {
             sb.append(" []");
             return sb.toString();
         }
@@ -228,22 +243,34 @@ public class ValueFormatter {
         sb.append(" [\n");
 
         // Format each item
-        int maxItems = Math.min(elements.size(), config.getMaxItems());
+        int maxItems = Math.min(size, config.getMaxItems());
 
         for (int i = 0; i < maxItems; i++) {
             String indent = getIndent(depth + 1);
             sb.append(indent);
             sb.append(colorize(i + " →", ColorUtil::dim));
             sb.append(" ");
-            sb.append(format(elements.get(i), depth + 1));
+
+            if (useElements && i < elements.size()) {
+                sb.append(format(elements.get(i), depth + 1));
+            } else if (useChildren) {
+                String key = String.valueOf(i);
+                DumpNode child = children.get(key);
+                if (child != null) {
+                    sb.append(format(child, depth + 1));
+                }
+            } else {
+                // If we have size but no actual elements (e.g., truncated)
+                sb.append(colorize("...", ColorUtil::dim));
+            }
             sb.append("\n");
         }
 
-        if (elements.size() > maxItems) {
+        if (size > maxItems || node.isTruncated()) {
             String indent = getIndent(depth + 1);
             sb.append(indent);
             sb.append(colorize(
-                    String.format("... %d more items", elements.size() - maxItems),
+                    String.format("... %d more items", size - maxItems),
                     ColorUtil::dim));
             sb.append("\n");
         }
@@ -260,16 +287,30 @@ public class ValueFormatter {
     private String formatMap(DumpNode node, int depth) {
         StringBuilder sb = new StringBuilder();
 
-        // Use getEntries() for maps
+        // Try to get data from entries first, then from children
         Map<DumpNode, DumpNode> entries = node.getEntries();
+        Map<String, DumpNode> children = node.getChildren();
+
+        boolean useEntries = !entries.isEmpty();
+        boolean useChildren = !children.isEmpty();
+
+        int size = 0;
+        if (useEntries) {
+            size = entries.size();
+        } else if (useChildren) {
+            size = children.size();
+        } else {
+            // Check display size if no entries/children
+            size = node.getDisplaySize();
+        }
 
         // Type header
         String header = String.format("%s[%d]",
                 node.getTypeName(),
-                node.getDisplaySize() > 0 ? node.getDisplaySize() : entries.size());
+                size);
         sb.append(colorize(header, ColorUtil::type));
 
-        if (entries.isEmpty()) {
+        if (size == 0) {
             sb.append(" {}");
             return sb.toString();
         }
@@ -278,31 +319,56 @@ public class ValueFormatter {
 
         // Format each entry
         int index = 0;
-        int maxItems = Math.min(entries.size(), config.getMaxItems());
+        int maxItems = Math.min(size, config.getMaxItems());
 
-        for (Map.Entry<DumpNode, DumpNode> entry : entries.entrySet()) {
-            if (index >= maxItems) {
+        if (useEntries) {
+            for (Map.Entry<DumpNode, DumpNode> entry : entries.entrySet()) {
+                if (index >= maxItems) break;
+
                 String indent = getIndent(depth + 1);
                 sb.append(indent);
-                sb.append(colorize(
-                        String.format("... %d more entries", entries.size() - maxItems),
-                        ColorUtil::dim));
-                sb.append("\n");
-                break;
-            }
 
+                // Format key
+                sb.append(format(entry.getKey(), depth + 1));
+                sb.append(" → ");
+
+                // Format value
+                sb.append(format(entry.getValue(), depth + 1));
+                sb.append("\n");
+
+                index++;
+            }
+        } else if (useChildren) {
+            for (Map.Entry<String, DumpNode> entry : children.entrySet()) {
+                if (index >= maxItems) break;
+
+                String indent = getIndent(depth + 1);
+                sb.append(indent);
+
+                // Format key
+                String key = entry.getKey();
+                // Remove quotes if they exist for cleaner display
+                if (key.startsWith("\"") && key.endsWith("\"")) {
+                    key = key.substring(1, key.length() - 1);
+                }
+                sb.append(colorize(key, ColorUtil::string));
+                sb.append(" → ");
+
+                // Format value
+                sb.append(format(entry.getValue(), depth + 1));
+                sb.append("\n");
+
+                index++;
+            }
+        }
+
+        if (size > maxItems || node.isTruncated()) {
             String indent = getIndent(depth + 1);
             sb.append(indent);
-
-            // Format key
-            sb.append(format(entry.getKey(), depth + 1));
-            sb.append(" → ");
-
-            // Format value
-            sb.append(format(entry.getValue(), depth + 1));
+            sb.append(colorize(
+                    String.format("... %d more entries", size - maxItems),
+                    ColorUtil::dim));
             sb.append("\n");
-
-            index++;
         }
 
         sb.append(getIndent(depth));
@@ -317,13 +383,17 @@ public class ValueFormatter {
     private String formatObject(DumpNode node, int depth) {
         StringBuilder sb = new StringBuilder();
 
-        // Use getFields() for objects
+        // Try to get data from fields first, then from children
         Map<String, DumpNode> fields = node.getFields();
+        Map<String, DumpNode> children = node.getChildren();
+
+        boolean useFields = !fields.isEmpty();
+        boolean useChildren = !children.isEmpty();
 
         // Type header: #Person
         sb.append(colorize("#" + node.getTypeName(), ColorUtil::type));
 
-        if (fields.isEmpty()) {
+        if (!useFields && !useChildren) {
             sb.append(" {}");
             return sb.toString();
         }
@@ -331,39 +401,49 @@ public class ValueFormatter {
         sb.append(" {\n");
 
         // Format each field
-        for (Map.Entry<String, DumpNode> entry : fields.entrySet()) {
-            String indent = getIndent(depth + 1);
-            sb.append(indent);
-
-            // Field name with visibility marker
-            String fieldName = entry.getKey();
-
-            // Extract visibility marker if present (-, +, #, ~)
-            String visibilityMarker = "";
-            String cleanFieldName = fieldName;
-
-            if (fieldName.length() > 0) {
-                char first = fieldName.charAt(0);
-                if (first == '-' || first == '+' || first == '#' || first == '~') {
-                    visibilityMarker = String.valueOf(first);
-                    cleanFieldName = fieldName.substring(1);
-                }
+        if (useFields) {
+            for (Map.Entry<String, DumpNode> entry : fields.entrySet()) {
+                formatField(sb, entry.getKey(), entry.getValue(), depth);
             }
-
-            // Format: -name → "value"
-            if (!visibilityMarker.isEmpty()) {
-                sb.append(colorize(visibilityMarker, ColorUtil::dim));
+        } else if (useChildren) {
+            for (Map.Entry<String, DumpNode> entry : children.entrySet()) {
+                formatField(sb, entry.getKey(), entry.getValue(), depth);
             }
-            sb.append(colorize(cleanFieldName, ColorUtil::cyan));
-            sb.append(colorize(" → ", ColorUtil::dim));
-            sb.append(format(entry.getValue(), depth + 1));
-            sb.append("\n");
         }
 
         sb.append(getIndent(depth));
         sb.append("}");
 
         return sb.toString();
+    }
+
+    /**
+     * Helper method to format a single field.
+     */
+    private void formatField(StringBuilder sb, String fieldName, DumpNode value, int depth) {
+        String indent = getIndent(depth + 1);
+        sb.append(indent);
+
+        // Extract visibility marker if present (-, +, #, ~)
+        String visibilityMarker = "";
+        String cleanFieldName = fieldName;
+
+        if (fieldName.length() > 0) {
+            char first = fieldName.charAt(0);
+            if (first == '-' || first == '+' || first == '#' || first == '~') {
+                visibilityMarker = String.valueOf(first);
+                cleanFieldName = fieldName.substring(1);
+            }
+        }
+
+        // Format: -name → "value"
+        if (!visibilityMarker.isEmpty()) {
+            sb.append(colorize(visibilityMarker, ColorUtil::dim));
+        }
+        sb.append(colorize(cleanFieldName, ColorUtil::cyan));
+        sb.append(colorize(" → ", ColorUtil::dim));
+        sb.append(format(value, depth + 1));
+        sb.append("\n");
     }
 
     /**

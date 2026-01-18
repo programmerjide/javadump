@@ -1,16 +1,15 @@
-# 🚀 JavaDump
-
 <div align="center">
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://www.oracle.com/java/)
+[![Java](https://img.shields.io/badge/Java-17+-orange.svg)](https://www.oracle.com/java/)
 [![Maven](https://img.shields.io/badge/Maven-4.0.0-C71A36.svg)](https://maven.apache.org/)
 [![GitHub release](https://img.shields.io/github/v/release/programmerjide/javadump)](https://github.com/programmerjide/javadump/releases)
 [![GitHub issues](https://img.shields.io/github/issues/programmerjide/javadump)](https://github.com/programmerjide/javadump/issues)
 [![GitHub stars](https://img.shields.io/github/stars/programmerjide/javadump)](https://github.com/programmerjide/javadump/stargazers)
 
+![JavaDump](./docs/images/javadump.png)
 
-**A developer-friendly, zero-dependency debug dumper for Java**
+**A developer-friendly, zero-dependency debug dumper for Java 17+**
 
 Pretty, colorized output of your objects, arrays, collections, and more - with cyclic reference detection, field filtering, and sensitive data redaction.
 
@@ -83,7 +82,7 @@ Dump.dump(user);
 <dependency>
     <groupId>io.github.programmerjide</groupId>
     <artifactId>javadump</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.2</version>
 </dependency>
 ```
 
@@ -107,7 +106,7 @@ Download the latest JAR from [releases](https://github.com/programmerjide/javadu
 import io.github.programmerjide.javadump.Dump;
 
 // Dump any object
-Dump.dump("Hello World");
+Dump.dump("Hello World!");
 Dump.dump(42);
 Dump.dump(new int[]{1, 2, 3});
 
@@ -467,44 +466,6 @@ void testUserCreation() {
 - **Gray** - Structural characters (`{`, `}`, `→`)
 - **Yellow** - Special markers (`(cyclic)`, `<redacted>`)
 - **Red/Green** - Booleans (`true`, `false`)
-
----
-
-## 🗺️ Roadmap
-
-### ✅ Phase 1: Core Features (Complete - v1.0.0)
-- [x] Basic dump functionality
-- [x] Colorized console output
-- [x] Circular reference detection
-- [x] Max depth/items limiting
-- [x] Builder pattern API
-- [x] Field filtering and redaction
-- [x] Call site detection
-
-### 🔜 Phase 2: Parity with godump (v1.1.0 - Next)
-- [ ] JSON output (`dumpJSON()`, `dumpJSONStr()`)
-- [ ] HTML output (`dumpHTML()`)
-- [ ] Diff functionality (`diff()`, `diffStr()`, `diffHTML()`)
-- [ ] Custom output writers
-- [ ] Header control (`withoutHeader()`)
-
-### 🚀 Phase 3: Java-Specific Advantages (v2.0.0)
-- [ ] Annotation support (`@DumpIgnore`, `@DumpRedact`, `@DumpLabel`)
-- [ ] Custom type formatters
-- [ ] Conditional dumps (`dumpIf()`, `dumpWhen()`)
-- [ ] Performance profiling
-- [ ] Stream support (`.peek(Dump::dump)`)
-- [ ] Exception context dumps
-- [ ] Test framework integration
-
-### 🎨 Phase 4: Advanced Features (v2.5.0)
-- [ ] Multiple themes (Dracula, Monokai, Solarized)
-- [ ] Export formats (Markdown, YAML)
-- [ ] Interactive HTML with search/filter
-- [ ] Reflection caching for performance
-- [ ] Plugin system for custom renderers
-
----
 
 ## 🤝 Contributing
 

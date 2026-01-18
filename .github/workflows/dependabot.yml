@@ -1,22 +1,34 @@
 version: 2
 updates:
-  # Maintain dependencies for Maven
+  # Maven dependencies
   - package-ecosystem: "maven"
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 10
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
     reviewers:
-      - "programmerjide"
-    assignees:
       - "programmerjide"
     labels:
       - "dependencies"
-      - "automated"
+      - "java"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
 
-  # Maintain dependencies for GitHub Actions
+  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 10
+      day: "monday"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "programmerjide"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"

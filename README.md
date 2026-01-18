@@ -468,44 +468,6 @@ void testUserCreation() {
 - **Yellow** - Special markers (`(cyclic)`, `<redacted>`)
 - **Red/Green** - Booleans (`true`, `false`)
 
----
-
-## 🗺️ Roadmap
-
-### ✅ Phase 1: Core Features (Complete - v1.0.0)
-- [x] Basic dump functionality
-- [x] Colorized console output
-- [x] Circular reference detection
-- [x] Max depth/items limiting
-- [x] Builder pattern API
-- [x] Field filtering and redaction
-- [x] Call site detection
-
-### 🔜 Phase 2: Parity with godump (v1.1.0 - Next)
-- [ ] JSON output (`dumpJSON()`, `dumpJSONStr()`)
-- [ ] HTML output (`dumpHTML()`)
-- [ ] Diff functionality (`diff()`, `diffStr()`, `diffHTML()`)
-- [ ] Custom output writers
-- [ ] Header control (`withoutHeader()`)
-
-### 🚀 Phase 3: Java-Specific Advantages (v2.0.0)
-- [ ] Annotation support (`@DumpIgnore`, `@DumpRedact`, `@DumpLabel`)
-- [ ] Custom type formatters
-- [ ] Conditional dumps (`dumpIf()`, `dumpWhen()`)
-- [ ] Performance profiling
-- [ ] Stream support (`.peek(Dump::dump)`)
-- [ ] Exception context dumps
-- [ ] Test framework integration
-
-### 🎨 Phase 4: Advanced Features (v2.5.0)
-- [ ] Multiple themes (Dracula, Monokai, Solarized)
-- [ ] Export formats (Markdown, YAML)
-- [ ] Interactive HTML with search/filter
-- [ ] Reflection caching for performance
-- [ ] Plugin system for custom renderers
-
----
-
 ## 🤝 Contributing
 
 Contributions are welcome! Please follow these guidelines:

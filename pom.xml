@@ -73,7 +73,7 @@
         <spotbugs.version>4.8.6.4</spotbugs.version>
         <maven.pmd.version>3.25.0</maven.pmd.version>
         <owasp.version>10.0.4</owasp.version>
-        <fmt.maven.version>2.24</fmt.maven.version>
+        <diff.spotless.version>2.44.0</diff.spotless.version>
         <gpg.keyname>A047948E028B1BB7</gpg.keyname>
     </properties>
 
@@ -251,17 +251,18 @@
 
             <!-- Code Formatter -->
             <plugin>
-                <groupId>com.spotify.fmt</groupId>
-                <artifactId>fmt-maven-plugin</artifactId>
-                <version>${fmt.maven.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>format</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${diff.spotless.version}</version>
+                <configuration>
+                    <skip>true</skip>
+                    <java>
+                        <!-- JDK 25 compatible -->
+                        <palantirJavaFormat version="2.55.0"/>
+                    </java>
+                </configuration>
             </plugin>
+
         </plugins>
     </build>
 

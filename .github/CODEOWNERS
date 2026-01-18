@@ -1,0 +1,7 @@
+# Default owner for everything
+* @programmerjide
+
+# Critical files require your review
+pom.xml @programmerjide
+.github/** @programmerjide
+src/main/java/io/github/programmerjide/javadump/core/** @programmerjide

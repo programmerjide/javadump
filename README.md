@@ -106,7 +106,7 @@ Download the latest JAR from [releases](https://github.com/programmerjide/javadu
 import io.github.programmerjide.javadump.Dump;
 
 // Dump any object
-Dump.dump("Hello World");
+Dump.dump("Hello World!");
 Dump.dump(42);
 Dump.dump(new int[]{1, 2, 3});
 

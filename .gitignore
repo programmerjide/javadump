@@ -13,7 +13,6 @@ buildNumber.properties
 # IDE
 .idea/
 *.iml
-.vscode/
 .settings/
 .project
 .classpath
@@ -39,3 +38,5 @@ hs_err_pid*
 
 # sh files
 *.sh
+config.bat
+node_modules

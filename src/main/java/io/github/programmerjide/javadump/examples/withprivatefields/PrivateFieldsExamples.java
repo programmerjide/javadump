@@ -13,7 +13,8 @@ public class PrivateFieldsExamples {
   private static class Classroom{
     private String teatcher = "Asdrubal";
     String discipline = "History";
-    private LocalTime classTime = LocalTime.of(15, 30, 0);
+    protected LocalTime classTime = LocalTime.of(15, 30, 0);
+    int age;
   }
 
   public static void main(String[] args) {

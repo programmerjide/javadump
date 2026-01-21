@@ -246,6 +246,9 @@
                 <version>${owasp.version}</version>
                 <configuration>
                     <failBuildOnCVSS>7</failBuildOnCVSS>
+                    <!-- Speed improvements -->
+                    <skipTestScope>true</skipTestScope>
+                    <skipProvidedScope>true</skipProvidedScope>
                 </configuration>
             </plugin>
 

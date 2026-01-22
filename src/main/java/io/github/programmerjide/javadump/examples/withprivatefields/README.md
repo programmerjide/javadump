@@ -34,6 +34,7 @@ Dump.dump(classroom);
   teatcher → "Asdrubal"
   discipline → "History"
   classTime → LocalTime 15:30
+  age → Integer 0
 }
 ```
 (Note: Private fields teatcher and classTime are visible)
@@ -58,7 +59,9 @@ new Dumper(config).dump(classroom);
 
 ```java
 #Classroom {
-  discipline → "History"
+  discipline → string(7) "History"
+  classTime → string(5) "15:30"
+  age → Integer 0
 }
 ```
 (Note: Only the non-private field discipline is shown. The private implementation details are hidden)
